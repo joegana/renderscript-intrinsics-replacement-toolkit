@@ -73,6 +73,7 @@ add_library(# Sets the name of the library.
             # Sets the library as a shared library.
             SHARED
             # Provides a relative path to your source file(s).
+            ColorUtil.cpp
             Blend.cpp
             Blur.cpp
             ColorMatrix.cpp

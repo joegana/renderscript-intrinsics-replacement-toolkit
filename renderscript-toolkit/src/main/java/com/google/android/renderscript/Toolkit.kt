@@ -72,6 +72,7 @@ object Toolkit {
      * @param sizeY The height of both buffers, as a number of RGBA values.
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      */
+    @JvmStatic
     @JvmOverloads
     fun blend(
         mode: BlendingMode,
@@ -116,6 +117,7 @@ object Toolkit {
      * @param destBitmap The destination buffer. Used for input and output.
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      */
+    @JvmStatic
     @JvmOverloads
     fun blend(
         mode: BlendingMode,
@@ -172,6 +174,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The blurred pixels, a ByteArray of size.
      */
+    @JvmStatic
     @JvmOverloads
     fun blur(
         inputArray: ByteArray,
@@ -225,6 +228,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The blurred Bitmap.
      */
+    @JvmStatic
     @JvmOverloads
     fun blur(inputBitmap: Bitmap, radius: Int = 5, restriction: Range2d? = null): Bitmap {
         validateBitmap("blur", inputBitmap)
@@ -333,6 +337,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The converted buffer.
      */
+    @JvmStatic
     @JvmOverloads
     fun colorMatrix(
         inputArray: ByteArray,
@@ -395,6 +400,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The converted buffer.
      */
+    @JvmStatic
     @JvmOverloads
     fun colorMatrix(
         inputBitmap: Bitmap,
@@ -456,6 +462,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The convolved array.
      */
+    @JvmStatic
     @JvmOverloads
     fun convolve(
         inputArray: ByteArray,
@@ -516,6 +523,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The convolved Bitmap.
      */
+    @JvmStatic
     @JvmOverloads
     fun convolve(
         inputBitmap: Bitmap,
@@ -561,6 +569,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The resulting array of counts.
      */
+    @JvmStatic
     @JvmOverloads
     fun histogram(
         inputArray: ByteArray,
@@ -616,6 +625,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The resulting array of counts.
      */
+    @JvmStatic
     @JvmOverloads
     fun histogram(
         inputBitmap: Bitmap,
@@ -661,6 +671,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The resulting vector of counts.
      */
+    @JvmStatic
     @JvmOverloads
     fun histogramDot(
         inputArray: ByteArray,
@@ -724,6 +735,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The resulting vector of counts.
      */
+    @JvmStatic
     @JvmOverloads
     fun histogramDot(
         inputBitmap: Bitmap,
@@ -767,6 +779,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The transformed image.
      */
+    @JvmStatic
     @JvmOverloads
     fun lut(
         inputArray: ByteArray,
@@ -818,6 +831,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The transformed image.
      */
+    @JvmStatic
     @JvmOverloads
     fun lut(
         inputBitmap: Bitmap,
@@ -868,6 +882,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The transformed image.
      */
+    @JvmStatic
     @JvmOverloads
     fun lut3d(
         inputArray: ByteArray,
@@ -922,6 +937,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return The transformed image.
      */
+    @JvmStatic
     @JvmOverloads
     fun lut3d(
         inputBitmap: Bitmap,
@@ -966,6 +982,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return An array that contains the rescaled image.
      */
+    @JvmStatic
     @JvmOverloads
     fun resize(
         inputArray: ByteArray,
@@ -1020,6 +1037,7 @@ object Toolkit {
      * @param restriction When not null, restricts the operation to a 2D range of pixels.
      * @return A Bitmap that contains the rescaled image.
      */
+    @JvmStatic
     @JvmOverloads
     fun resize(
         inputBitmap: Bitmap,
@@ -1050,6 +1068,7 @@ object Toolkit {
      * @param format Either YV12 or NV21.
      * @return The converted image as a byte array.
      */
+    @JvmStatic
     fun yuvToRgb(inputArray: ByteArray, sizeX: Int, sizeY: Int, format: YuvFormat): ByteArray {
         require(sizeX % 2 == 0 && sizeY % 2 == 0) {
             "$externalName yuvToRgb. Non-even dimensions are not supported. " +
@@ -1076,6 +1095,7 @@ object Toolkit {
      * @param format Either YV12 or NV21.
      * @return The converted image.
      */
+    @JvmStatic
     fun yuvToRgbBitmap(inputArray: ByteArray, sizeX: Int, sizeY: Int, format: YuvFormat): Bitmap {
         require(sizeX % 2 == 0 && sizeY % 2 == 0) {
             "$externalName yuvToRgbBitmap. Non-even dimensions are not supported. " +
@@ -1400,7 +1420,12 @@ enum class BlendingMode(val value: Int) {
     /**
      * dest = max(dest - src, 0.0)
      */
-    SUBTRACT(14)
+    SUBTRACT(14),
+
+    /**
+     *Replaces luminosity of destination with luminosity of source, leaving hue and saturation unchanged
+     */
+    LUMINOSITY(28),
 }
 
 /**

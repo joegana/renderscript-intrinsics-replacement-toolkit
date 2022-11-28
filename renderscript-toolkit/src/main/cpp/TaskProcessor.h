@@ -25,6 +25,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include "ColorUtil.h"
 
 namespace renderscript {
 

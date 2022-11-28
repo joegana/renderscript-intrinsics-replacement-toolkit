@@ -337,6 +337,24 @@ void BlendTask::blend(RenderScriptToolkit::BlendingMode mode, const uchar4* in, 
             out->w = (oA - iA) < 0 ? 0 : oA - iA;
         }
         break;
+    case RenderScriptToolkit::BlendingMode::LUMINOSITY:
+    #if defined(ARCH_X86_HAVE_SSSE3)
+        //ignore x86 ssse3 impl
+    #endif
+        for(;x1 < x2; x1++, out++,in++){
+            int32_t iR = in->x, iG = in->y, iB = in->z, iA = in->w,
+                    oR = out->x, oG = out->y, oB = out->z, oA = out->w;
+            SkScalar ihsv[3],dhsv[3];
+            RGBToHSV(iR,iG,iB,ihsv);
+            RGBToHSV(oR,oG,oB,dhsv);
+            dhsv[2] = ihsv[2];
+            int nC = HSVToColor(0xff,dhsv);
+            out->x = SkColorGetR(nC) ;
+            out->y = SkColorGetG(nC) ;
+            out->z = SkColorGetB(nC) ;
+            out->w = SkColorGetA(nC) ;
+        }
+        break;
 
     default:
         ALOGE("Called unimplemented value %d", mode);

@@ -163,7 +163,13 @@ class RenderScriptToolkit {
         /**
          * dest = max(dest - src, 0.0)
          */
-        SUBTRACT = 14
+        SUBTRACT = 14,
+
+        /**
+         *  Replaces luminosity of destination with luminosity of source, leaving hue and
+         *  saturation unchanged.
+         */
+        LUMINOSITY = 28
     };
 
     /**

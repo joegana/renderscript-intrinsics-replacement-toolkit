@@ -3,6 +3,15 @@ plugins {
     id 'kotlin-android'
 }
 
+ext{
+    package_name = 'com.google.android.renderscript'
+    artifactVersion = '2.0.4.2'//release包发布的版本
+    artifactGroup = "toolkit"
+    artifactFilePath  = "${project.buildDir}/outputs/aar/${project.name}-" +
+            "${(artifactVersion.endsWith('SNAPSHOT') || artifactVersion.endsWith('snapshot'))?'debug':'release'}.aar"
+}
+
+
 android {
     compileSdkVersion 31
     buildToolsVersion "31.0.0"
@@ -42,8 +51,14 @@ android {
     }
 }
 
-dependencies {
+task generateSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier 'sources'
+}
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin"
     implementation 'androidx.core:core-ktx:1.6.0'
 }
+
+apply from: '../local-maven.gradle'
