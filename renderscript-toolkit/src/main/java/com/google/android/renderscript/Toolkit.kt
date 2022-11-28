@@ -1423,6 +1423,21 @@ enum class BlendingMode(val value: Int) {
     SUBTRACT(14),
 
     /**
+     * Replaces hue of destination with hue of source, leaving saturation and luminosity unchanged
+     */
+    HUE(25),
+
+    /**
+     * Replaces saturation of destination saturation hue of source, leaving hue and luminosity unchanged.
+     */
+    SATURATION(26),
+
+    /**
+     * Replaces hue and saturation of destination with hue and saturation of source, leaving luminosity unchanged.
+     */
+    COLOR(27),
+
+    /**
      *Replaces luminosity of destination with luminosity of source, leaving hue and saturation unchanged
      */
     LUMINOSITY(28),

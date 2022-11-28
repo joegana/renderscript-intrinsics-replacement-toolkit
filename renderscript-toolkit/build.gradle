@@ -5,7 +5,7 @@ plugins {
 
 ext{
     package_name = 'com.google.android.renderscript'
-    artifactVersion = '2.0.4.2'//release包发布的版本
+    artifactVersion = '2.0.4.3'//release包发布的版本
     artifactGroup = "toolkit"
     artifactFilePath  = "${project.buildDir}/outputs/aar/${project.name}-" +
             "${(artifactVersion.endsWith('SNAPSHOT') || artifactVersion.endsWith('snapshot'))?'debug':'release'}.aar"

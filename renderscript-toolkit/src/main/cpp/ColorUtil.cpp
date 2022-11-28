@@ -3,7 +3,7 @@
 //
 
 #include "ColorUtil.h"
-
+namespace renderscript{
 void RGBToHSV(U8CPU r, U8CPU g, U8CPU b, SkScalar hsv[3]) {
     SkASSERT(hsv);
 
@@ -76,3 +76,34 @@ SkColor HSVToColor(U8CPU a, const SkScalar hsv[3]) {
     }
     return SkColorSetARGB(a, r, g, b);
 }
+
+void ColorBlender(RenderScriptToolkit::BlendingMode blendingMode, const SkScalar inHsv[3], SkScalar dstHsv[3]){
+    SkASSERT(inHsv);
+    SkASSERT(dstHsv);
+
+    switch (blendingMode) {
+        case RenderScriptToolkit::BlendingMode::HUE:
+        {
+            dstHsv[0] = inHsv[0];
+        }break;
+        case RenderScriptToolkit::BlendingMode::SATURATION:
+        {
+            dstHsv[1] = inHsv[1];
+        }break;
+        case RenderScriptToolkit::BlendingMode::COLOR:
+        {
+            dstHsv[0] = inHsv[0];
+            dstHsv[1] = inHsv[1];
+        }break;
+        case RenderScriptToolkit::BlendingMode::LUMINOSITY:
+        {
+            dstHsv[2] = inHsv[2];
+        }break;
+        
+    }
+}
+
+}
+
+
+
