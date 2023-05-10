@@ -166,22 +166,21 @@ class RenderScriptToolkit {
         SUBTRACT = 14,
 
         /**
-         * Replaces hue of destination with hue of source, leaving saturation and luminosity unchanged
+         * hue of source with saturation and luminosity of destination
          */
         HUE = 25,
 
         /**
-         *Replaces saturation of destination saturation hue of source, leaving hue and luminosity unchanged
+         * saturation of source with hue and luminosity of destination
          */
         SATURATION = 26,
 
         /**
-         * Replaces hue and saturation of destination with hue and saturation of source, leaving luminosity unchanged.
+         * hue and saturation of source with luminosity of destination
          */
         COLOR = 27,
         /**
-         *  Replaces luminosity of destination with luminosity of source, leaving hue and
-         *  saturation unchanged.
+         * luminosity of source with hue and saturation of destination.
          */
         LUMINOSITY = 28
     };

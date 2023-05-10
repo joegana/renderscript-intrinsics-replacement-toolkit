@@ -340,10 +340,9 @@ void BlendTask::blend(RenderScriptToolkit::BlendingMode mode, const uchar4* in, 
     case RenderScriptToolkit::BlendingMode::HUE:
     case RenderScriptToolkit::BlendingMode::SATURATION:
     case RenderScriptToolkit::BlendingMode::COLOR:
-    case RenderScriptToolkit::BlendingMode::LUMINOSITY:
-    #if defined(ARCH_X86_HAVE_SSSE3)
-        //ignore x86 ssse3 impl
-    #endif
+        #if defined(ARCH_X86_HAVE_SSSE3)
+                    //ignore x86 ssse3 impl
+        #endif
         for(;x1 < x2; x1++, out++,in++){
             int32_t iR = in->x, iG = in->y, iB = in->z,
                     oR = out->x, oG = out->y, oB = out->z;
@@ -358,12 +357,29 @@ void BlendTask::blend(RenderScriptToolkit::BlendingMode mode, const uchar4* in, 
             out->w = SkColorGetA(nC) ;
         }
         break;
-
+    case RenderScriptToolkit::BlendingMode::LUMINOSITY:
+    {
+        #if defined(ARCH_X86_HAVE_SSSE3)
+                //ignore x86 ssse3 impl
+        #endif
+        for(;x1 < x2; x1++, out++,in++) {
+            int32_t iR = in->x, iG = in->y, iB = in->z,
+                    oR = out->x, oG = out->y, oB = out->z;
+            set_lum(&oR,&oG,&oB, luminance(iR,iG,iB));
+            out->x = oR ;
+            out->y = oG ;
+            out->z = oB ;
+            out->w = 1 ; //alpha 暂时维持 1
+        }
+    }
+     break;
     default:
         ALOGE("Called unimplemented value %d", mode);
         assert(false);
     }
 }
+
+
 
 void BlendTask::processData(int /* threadIndex */, size_t startX, size_t startY, size_t endX,
                             size_t endY) {

@@ -116,5 +116,15 @@ namespace  renderscript{
 
     void ColorBlender(RenderScriptToolkit::BlendingMode blendingMode, const SkScalar inHsv[3], SkScalar dstHsv[3]);
 
+    static SkScalar luminance(int32_t r, int32_t g, int32_t b){
+        return r*0.30f + g*0.59f + b*0.11f;
+    }
+
+    static void set_lum(int32_t* r, int32_t* g, int32_t* b, int32_t lu) {
+        auto diff = lu - luminance(*r, *g, *b);
+        *r += diff;
+        *g += diff;
+        *b += diff;
+    }
 }
 #endif //RENDERSCRIPT_INTRINSICS_REPLACEMENT_TOOLKIT_COLORUTIL_H
