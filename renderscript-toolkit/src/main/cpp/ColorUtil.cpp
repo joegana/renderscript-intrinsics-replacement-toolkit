@@ -102,7 +102,7 @@ namespace renderscript {
         return SkColorSetARGB(a, r, g, b);
     }
 
-  void RGBToXYZ(U8CPU r, U8CPU g, U8CPU b, SkScalar xyz[3]){
+    void RGBToXYZ(U8CPU r, U8CPU g, U8CPU b, SkScalar xyz[3]){
         SkASSERT(xyz);
         SkScalar sr = r / 255.0f ;
         sr = sr < 0.04045 ? sr / 12.92f : pow((sr + 0.055f) / 1.055f, 2.4);
@@ -116,33 +116,32 @@ namespace renderscript {
         xyz[2] = 100 * (sr * 0.0193 + sg * 0.1192 + sb * 0.9505);
  }
 
+    SkColor XYZToColor(U8CPU a,const SkScalar xyz[3]){
+        SkASSERT(xyz);
+        SkScalar x = xyz[0],y = xyz[1],z = xyz[2] ;
+        SkScalar r = (x * 3.2406f + y * -1.5372f + z * -0.4986f) / 100;
+        SkScalar g = (x * -0.9689f + y * 1.8758 + z * 0.0415f) / 100;
+        SkScalar b = (x * 0.0557f + y * -0.2040f + z * 1.0570f) / 100;
 
-SkColor XYZToColor(U8CPU a,const SkScalar xyz[3]){
-    SkASSERT(xyz);
-    SkScalar x = xyz[0],y = xyz[1],z = xyz[2] ;
-    SkScalar r = (x * 3.2406f + y * -1.5372f + z * -0.4986f) / 100;
-    SkScalar g = (x * -0.9689f + y * 1.8758 + z * 0.0415f) / 100;
-    SkScalar b = (x * 0.0557f + y * -0.2040f + z * 1.0570f) / 100;
+        r = r > 0.0031308 ? 1.055 * std::pow(r, 1 / 2.4) - 0.055 : 12.92 * r;
+        g = g > 0.0031308 ? 1.055 * std::pow(g, 1 / 2.4) - 0.055 : 12.92 * g;
+        b = b > 0.0031308 ? 1.055 * std::pow(b, 1 / 2.4) - 0.055 : 12.92 * b;
 
-    r = r > 0.0031308 ? 1.055 * std::pow(r, 1 / 2.4) - 0.055 : 12.92 * r;
-    g = g > 0.0031308 ? 1.055 * std::pow(g, 1 / 2.4) - 0.055 : 12.92 * g;
-    b = b > 0.0031308 ? 1.055 * std::pow(b, 1 / 2.4) - 0.055 : 12.92 * b;
-
-    return SkColorSetARGB(a,
-                    constrain((int) std::round(r * 255), 0, 255),
-                    constrain((int) std::round(g * 255), 0, 255),
-                    constrain((int) std::round(b * 255), 0, 255));
+        return SkColorSetARGB(a,
+                        constrain((int) std::round(r * 255), 0, 255),
+                        constrain((int) std::round(g * 255), 0, 255),
+                        constrain((int) std::round(b * 255), 0, 255));
 }
 
     void RGBToHSL(U8CPU r,U8CPU g,U8CPU b,SkScalar hsl[3]){
         SkASSERT(hsl);
-        SkScalar rf = r / 255.0f;
-        SkScalar gf = g / 255.0f;
-        SkScalar bf = b / 255.0f;
+        SkScalar rf = ByteDivToScalar(r , 255);
+        SkScalar gf = ByteDivToScalar(g, 255);
+        SkScalar bf = ByteDivToScalar(b,255);
 
         SkScalar max = std::max(rf, std::max(gf, bf));
-        float min = std::min(rf, std::min(gf, bf));
-        float deltaMaxMin = max - min;
+        SkScalar min = std::min(rf, std::min(gf, bf));
+        SkScalar deltaMaxMin = max - min;
 
         SkScalar h,s ;
         SkScalar l = (max + min) /2.0f ;
@@ -154,13 +153,13 @@ SkColor XYZToColor(U8CPU a,const SkScalar xyz[3]){
                 h = SkIntToScalar(SkScalarRoundToInt((gf - bf) / deltaMaxMin) % 6) ;
             }else if(max == gf){
                 h = ((bf - rf) / deltaMaxMin) + 2.0f;
-            }else{
+            }else{ // max == bf
                 h = ((rf - gf) / deltaMaxMin) + 4.0f;
             }
             s = deltaMaxMin / (1.0f - std::abs(2.0f * l - 1.0f));
         }
 
-        h = SkIntToScalar(SkScalarRoundToInt(h * 60) % 360);
+        h = SkIntToScalar(SkScalarRoundToInt(h * 60.0f) % 360);
         if (h < 0) {
             h += 360.0f;
         }
@@ -171,9 +170,10 @@ SkColor XYZToColor(U8CPU a,const SkScalar xyz[3]){
     }
 
     SkColor HSLToColor(U8CPU a,const SkScalar hsl[3]){
-         SkScalar h = hsl[0];
-         SkScalar s = hsl[1];
-         SkScalar l = hsl[2];
+         SkASSERT(hsl);
+         SkScalar h = SkTPin(hsl[0], 0.0f, 360.0f);
+         SkScalar s = SkTPin(hsl[1], 0.0f, 1.0f);
+         SkScalar l = SkTPin(hsl[2], 0.0f, 1.0f);
 
          SkScalar c = (1.0f - std::abs(2 * l - 1.0f)) * s;
          SkScalar m = l - 0.5f * c;
@@ -185,35 +185,35 @@ SkColor XYZToColor(U8CPU a,const SkScalar xyz[3]){
 
         switch (hueSegment) {
             case 0:
-                r = std::round(255 * (c + m));
-                g = std::round(255 * (x + m));
-                b = std::round(255 * m);
+                r = SkScalarRoundToInt(255 * (c + m));
+                g = SkScalarRoundToInt(255 * (x + m));
+                b = SkScalarRoundToInt(255 * m);
                 break;
             case 1:
-                r = std::round(255 * (x + m));
-                g = std::round(255 * (c + m));
-                b = std::round(255 * m);
+                r = SkScalarRoundToInt(255 * (x + m));
+                g = SkScalarRoundToInt(255 * (c + m));
+                b = SkScalarRoundToInt(255 * m);
                 break;
             case 2:
-                r = std::round(255 * m);
-                g = std::round(255 * (c + m));
-                b = std::round(255 * (x + m));
+                r = SkScalarRoundToInt(255 * m);
+                g = SkScalarRoundToInt(255 * (c + m));
+                b = SkScalarRoundToInt(255 * (x + m));
                 break;
             case 3:
-                r = std::round(255 * m);
-                g = std::round(255 * (x + m));
-                b = std::round(255 * (c + m));
+                r = SkScalarRoundToInt(255 * m);
+                g = SkScalarRoundToInt(255 * (x + m));
+                b = SkScalarRoundToInt(255 * (c + m));
                 break;
             case 4:
-                r = std::round(255 * (x + m));
-                g = std::round(255 * m);
-                b = std::round(255 * (c + m));
+                r = SkScalarRoundToInt(255 * (x + m));
+                g = SkScalarRoundToInt(255 * m);
+                b = SkScalarRoundToInt(255 * (c + m));
                 break;
             case 5:
             case 6:
-                r = std::round(255 * (c + m));
-                g = std::round(255 * m);
-                b = std::round(255 * (x + m));
+                r = SkScalarRoundToInt(255 * (c + m));
+                g = SkScalarRoundToInt(255 * m);
+                b = SkScalarRoundToInt(255 * (x + m));
                 break;
         }
 
@@ -224,30 +224,50 @@ SkColor XYZToColor(U8CPU a,const SkScalar xyz[3]){
         return SkColorSetARGB(a,r,g,b);
     }
 
-    void ColorBlender(RenderScriptToolkit::BlendingMode blendingMode, const SkScalar inHsl[3],
-                      SkScalar dstHsl[3]) {
+    void ColorBlenderHSV(RenderScriptToolkit::BlendingMode blendingMode, const SkScalar inHsv[3],
+                      SkScalar dstHsv[3]) {
         SkASSERT(inHsv);
         SkASSERT(dstHsv);
 
         switch (blendingMode) {
             case RenderScriptToolkit::BlendingMode::HUE: {
-                dstHsl[0] = inHsl[0];
+                dstHsv[0] = inHsv[0];
             }
                 break;
             case RenderScriptToolkit::BlendingMode::SATURATION: {
-                dstHsl[1] = inHsl[1];
+                dstHsv[1] = inHsv[1];
             }
                 break;
             case RenderScriptToolkit::BlendingMode::COLOR: {
-                dstHsl[0] = inHsl[0];
-                dstHsl[1] = inHsl[1];
+                dstHsv[0] = inHsv[0];
+                dstHsv[1] = inHsv[1];
             }
                 break;
             case RenderScriptToolkit::BlendingMode::LUMINOSITY: {
-                dstHsl[2] = inHsl[2];
+                dstHsv[2] = inHsv[2];
             }
                 break;
+        }
+    }
 
+    void ColorBlenderRGB(RenderScriptToolkit::BlendingMode blendingMode,  SkScalar inRGB[3], const SkScalar dstRGB[3]){
+        switch (blendingMode) {
+            case RenderScriptToolkit::BlendingMode::HUE: {
+                hue(dstRGB[0],dstRGB[1],dstRGB[2],&inRGB[0],&inRGB[1],&inRGB[2]);
+            }
+                break;
+            case RenderScriptToolkit::BlendingMode::SATURATION: {
+                saturation(dstRGB[0],dstRGB[1],dstRGB[2],&inRGB[0],&inRGB[1],&inRGB[2]);
+            }
+                break;
+            case RenderScriptToolkit::BlendingMode::COLOR: {
+                color(dstRGB[0],dstRGB[1],dstRGB[2],&inRGB[0],&inRGB[1],&inRGB[2]);
+            }
+                break;
+            case RenderScriptToolkit::BlendingMode::LUMINOSITY: {
+                luminosity(dstRGB[0],dstRGB[1],dstRGB[2],&inRGB[0],&inRGB[1],&inRGB[2]);
+            }
+                break;
         }
     }
 }

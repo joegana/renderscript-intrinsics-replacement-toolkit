@@ -344,20 +344,24 @@ void BlendTask::blend(RenderScriptToolkit::BlendingMode mode, const uchar4* in, 
     case RenderScriptToolkit::BlendingMode::COLOR:
     case RenderScriptToolkit::BlendingMode::LUMINOSITY:
         #if defined(ARCH_X86_HAVE_SSSE3)
-                    //ignore x86 ssse3 impl
+            //ignore x86 ssse3 impl
         #endif
         for(;x1 < x2; x1++, out++,in++){
             int32_t iR = in->x, iG = in->y, iB = in->z,
                     oR = out->x, oG = out->y, oB = out->z;
-            SkScalar ihsl[3],dhsl[3];
-            RGBToHSL(iR,iG,iB,ihsl);
-            RGBToHSL(oR,oG,oB,dhsl);
-            ColorBlender(mode, ihsl, dhsl);
-            int nC = HSLToColor(0xff,dhsl);
-            out->x = SkColorGetR(nC) ;
-            out->y = SkColorGetG(nC) ;
-            out->z = SkColorGetB(nC) ;
-            out->w = SkColorGetA(nC) ;
+            SkScalar iRGB[3] = {
+                iR / 255.0f ,
+                iG / 255.0f ,
+                iB / 255.0f ,
+            },oRGB[3] = {
+                oR / 255.0f ,
+                oG / 255.0f ,
+                oB / 255.0f ,
+            };
+            ColorBlenderRGB(mode, iRGB, oRGB);
+            out->x = constrain(SkScalarRoundToInt(iRGB[0]*255.0f),0,255);
+            out->y = constrain(SkScalarRoundToInt(iRGB[1]*255.0f),0,255);
+            out->z = constrain(SkScalarRoundToInt(iRGB[2]*255.0f),0,255);
         }
         break;
     default:

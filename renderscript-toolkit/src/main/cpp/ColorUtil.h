@@ -122,11 +122,9 @@ namespace  renderscript{
 
     SkColor HSLToColor(U8CPU a,const SkScalar hsl[3]);
 
-    void ColorBlender(RenderScriptToolkit::BlendingMode blendingMode, const SkScalar inHsv[3], SkScalar dstHsv[3]);
+    void ColorBlenderHSV(RenderScriptToolkit::BlendingMode blendingMode, const SkScalar inHsv[3], SkScalar dstHsv[3]);
 
-    static SkScalar luminance(int32_t r, int32_t g, int32_t b){
-        return r*0.30f + g*0.59f + b*0.11f;
-    }
+    void ColorBlenderRGB(RenderScriptToolkit::BlendingMode blendingMode, SkScalar inRGB[3], const SkScalar dstRGB[3]);
 
     static int constrain(int32_t amount, int32_t low, int32_t high) {
         return amount < low ? low : (amount > high ? high : amount);
@@ -136,11 +134,100 @@ namespace  renderscript{
         return amount < low ? low : (amount > high ? high : amount);
     }
 
-    static void set_lum(int32_t* r, int32_t* g, int32_t* b, int32_t lu) {
-        auto diff = lu - luminance(*r, *g, *b);
+    static float min(float r, float g, float b) { return std::min(r, std::min(g, b)); }
+    static float max(float r, float g, float b) { return std::max(r, std::max(g, b)); }
+
+    static float sat(float r, float g, float b) { return max(r,g,b) - min(r,g,b); }
+    static float lum(float r, float g, float b) { return r*0.30f + g*0.59f + b*0.11f; }
+
+// The two SetSat() routines in the specs look different, but they're logically equivalent.
+// Both map the minimum channel to 0, maximum to s, and scale the middle proportionately.
+// The KHR version has done a better job at simplifying its math, so we use it here.
+    static void set_sat(float* r, float* g, float* b, float s) {
+        float mn = min(*r,*g,*b),
+                mx = max(*r,*g,*b);
+        auto channel = [=](float c) {
+            return mx == mn ? 0
+                            : (c - mn) * s / (mx - mn);
+        };
+        *r = channel(*r);
+        *g = channel(*g);
+        *b = channel(*b);
+    }
+
+    static void clip_color(float* r, float* g, float* b) {
+        float l  = lum(*r,*g,*b),
+                mn = min(*r,*g,*b),
+                mx = max(*r,*g,*b);
+        auto clip = [=](float c) {
+            if (mn < 0) { c = l + (c - l) * (    l) / (l - mn); }
+            if (mx > 1) { c = l + (c - l) * (1 - l) / (mx - l); }
+            SkASSERT(-0.0001f <  c);   // This may end up very slightly negative...
+            SkASSERT(       c <= 1);
+            return c;
+        };
+        *r = clip(*r);
+        *g = clip(*g);
+        *b = clip(*b);
+    }
+
+    static void set_lum(float* r, float* g, float* b, float l) {
+        float diff = l - lum(*r,*g,*b);
         *r += diff;
         *g += diff;
         *b += diff;
+        clip_color(r,g,b);
+    }
+
+
+    static void hue(float  dr, float  dg, float  db,
+                    float* sr, float* sg, float* sb) {
+        // Hue of Src, Saturation and Luminosity of Dst.
+        float R = *sr,
+                G = *sg,
+                B = *sb;
+        set_sat(&R,&G,&B, sat(dr,dg,db));
+        set_lum(&R,&G,&B, lum(dr,dg,db));
+        *sr = R;
+        *sg = G;
+        *sb = B;
+    }
+
+    static void saturation(float  dr, float  dg, float  db,
+                           float* sr, float* sg, float* sb) {
+        // Saturation of Src, Hue and Luminosity of Dst
+        float R = dr,
+                G = dg,
+                B = db;
+        set_sat(&R,&G,&B, sat(*sr,*sg,*sb));
+        set_lum(&R,&G,&B, lum( dr, dg, db));  // This may seem redundant, but it is not.
+        *sr = R;
+        *sg = G;
+        *sb = B;
+    }
+
+    static void color(float  dr, float  dg, float  db,
+                      float* sr, float* sg, float* sb) {
+        // Hue and Saturation of Src, Luminosity of Dst.
+        float R = *sr,
+                G = *sg,
+                B = *sb;
+        set_lum(&R,&G,&B, lum(dr,dg,db));
+        *sr = R;
+        *sg = G;
+        *sb = B;
+    }
+
+    static void luminosity(float  dr, float  dg, float  db,
+                           float* sr, float* sg, float* sb) {
+        // Luminosity of Src, Hue and Saturation of Dst.
+        float R = dr,
+                G = dg,
+                B = db;
+        set_lum(&R,&G,&B, lum(*sr,*sg,*sb));
+        *sr = R;
+        *sg = G;
+        *sb = B;
     }
 }
 #endif //RENDERSCRIPT_INTRINSICS_REPLACEMENT_TOOLKIT_COLORUTIL_H
