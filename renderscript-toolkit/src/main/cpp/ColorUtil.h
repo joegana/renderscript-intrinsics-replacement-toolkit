@@ -114,10 +114,26 @@ namespace  renderscript{
 
     SkColor HSVToColor(U8CPU a, const SkScalar hsv[3]);
 
+    void RGBToXYZ(U8CPU r,U8CPU g,U8CPU b,SkScalar xyz[3]);
+
+    SkColor XYZToColor(U8CPU a,const SkScalar xyz[3]);
+
+    void RGBToHSL(U8CPU r,U8CPU g,U8CPU b,SkScalar hsl[3]);
+
+    SkColor HSLToColor(U8CPU a,const SkScalar hsl[3]);
+
     void ColorBlender(RenderScriptToolkit::BlendingMode blendingMode, const SkScalar inHsv[3], SkScalar dstHsv[3]);
 
     static SkScalar luminance(int32_t r, int32_t g, int32_t b){
         return r*0.30f + g*0.59f + b*0.11f;
+    }
+
+    static int constrain(int32_t amount, int32_t low, int32_t high) {
+        return amount < low ? low : (amount > high ? high : amount);
+    }
+
+   static float constrain(SkScalar amount, SkScalar low, SkScalar high) {
+        return amount < low ? low : (amount > high ? high : amount);
     }
 
     static void set_lum(int32_t* r, int32_t* g, int32_t* b, int32_t lu) {

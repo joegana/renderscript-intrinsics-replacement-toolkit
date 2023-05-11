@@ -86,12 +86,14 @@ void BlendTask::blend(RenderScriptToolkit::BlendingMode mode, const uchar4* in, 
     uint32_t x2 = length;
 
 #if defined(ARCH_ARM_USE_INTRINSICS)
-    if (mUsesSimd) {
+    if(mode < RenderScriptToolkit::BlendingMode::HUE){
+        if (mUsesSimd) {
         if (rsdIntrinsicBlend_K(out, in, (int) mode, x1, x2) >= 0) {
             return;
         } else {
             ALOGW("Intrinsic Blend failed to use SIMD for %d", mode);
         }
+     }
     }
 #endif
     switch (mode) {
@@ -340,39 +342,24 @@ void BlendTask::blend(RenderScriptToolkit::BlendingMode mode, const uchar4* in, 
     case RenderScriptToolkit::BlendingMode::HUE:
     case RenderScriptToolkit::BlendingMode::SATURATION:
     case RenderScriptToolkit::BlendingMode::COLOR:
+    case RenderScriptToolkit::BlendingMode::LUMINOSITY:
         #if defined(ARCH_X86_HAVE_SSSE3)
                     //ignore x86 ssse3 impl
         #endif
         for(;x1 < x2; x1++, out++,in++){
             int32_t iR = in->x, iG = in->y, iB = in->z,
                     oR = out->x, oG = out->y, oB = out->z;
-            SkScalar ihsv[3],dhsv[3];
-            RGBToHSV(iR,iG,iB,ihsv);
-            RGBToHSV(oR,oG,oB,dhsv);
-            ColorBlender(mode, ihsv, dhsv);
-            int nC = HSVToColor(0xff,dhsv);
+            SkScalar ihsl[3],dhsl[3];
+            RGBToHSL(iR,iG,iB,ihsl);
+            RGBToHSL(oR,oG,oB,dhsl);
+            ColorBlender(mode, ihsl, dhsl);
+            int nC = HSLToColor(0xff,dhsl);
             out->x = SkColorGetR(nC) ;
             out->y = SkColorGetG(nC) ;
             out->z = SkColorGetB(nC) ;
             out->w = SkColorGetA(nC) ;
         }
         break;
-    case RenderScriptToolkit::BlendingMode::LUMINOSITY:
-    {
-        #if defined(ARCH_X86_HAVE_SSSE3)
-                //ignore x86 ssse3 impl
-        #endif
-        for(;x1 < x2; x1++, out++,in++) {
-            int32_t iR = in->x, iG = in->y, iB = in->z,
-                    oR = out->x, oG = out->y, oB = out->z;
-            set_lum(&oR,&oG,&oB, luminance(iR,iG,iB));
-            out->x = oR ;
-            out->y = oG ;
-            out->z = oB ;
-            out->w = 1 ; //alpha 暂时维持 1
-        }
-    }
-     break;
     default:
         ALOGE("Called unimplemented value %d", mode);
         assert(false);
